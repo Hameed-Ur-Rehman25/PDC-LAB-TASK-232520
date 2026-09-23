@@ -7,22 +7,22 @@ Raw console output from every run is in [output.txt](output.txt).
 
 ## Project Structure
 
-All four tasks are in a single console project, [Lab03/](Lab03/), with one file per task:
+All four tasks are in a single console project ([Lab03.csproj](Lab03.csproj)) in this folder, with one file per task:
 
 | File | Task |
 |---|---|
-| [Program.cs](Lab03/Program.cs) | Entry point that picks which task to run |
-| [Task1_ProcessLab.cs](Lab03/Task1_ProcessLab.cs) | Task 1: Process creation and address-space separation |
-| [Task2_ArraySumThreads.cs](Lab03/Task2_ArraySumThreads.cs) | Task 2: Summing array slices across worker threads |
-| [Task3_CreationOverhead.cs](Lab03/Task3_CreationOverhead.cs) | Task 3: Process- vs. thread-creation overhead |
-| [Task4_ThreadLifecycle.cs](Lab03/Task4_ThreadLifecycle.cs) | Task 4: Thread lifecycle states |
+| [Program.cs](Program.cs) | Entry point that picks which task to run |
+| [Task1_ProcessLab.cs](Task1_ProcessLab.cs) | Task 1: Process creation and address-space separation |
+| [Task2_ArraySumThreads.cs](Task2_ArraySumThreads.cs) | Task 2: Summing array slices across worker threads |
+| [Task3_CreationOverhead.cs](Task3_CreationOverhead.cs) | Task 3: Process- vs. thread-creation overhead |
+| [Task4_ThreadLifecycle.cs](Task4_ThreadLifecycle.cs) | Task 4: Thread lifecycle states |
 
 Tasks 1 and 3 start this same executable as their child process. The `--child` argument runs Task 1's child branch, and `--noop` makes the child exit immediately for Task 3.
 
 ### How to Run
 
 ```bash
-cd Lab03
+cd LAB-03
 dotnet run -c Release            # runs all four tasks in order
 dotnet run -c Release -- 1       # run only Task 1 (use 2, 3 or 4 for the others)
 ```
