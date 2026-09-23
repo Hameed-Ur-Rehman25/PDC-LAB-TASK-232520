@@ -1,7 +1,7 @@
 using System;
 using System.Threading;
 
-class Program
+static class ArraySumThreads
 {
     static readonly long[] data = new long[10_000_000];
     static long[] partialSums = Array.Empty<long>();
@@ -23,7 +23,7 @@ class Program
         Console.WriteLine($"  Worker {idx}: range [{start}, {end}) -> partial sum = {sum}");
     }
 
-    static void Main()
+    public static void Run()
     {
         for (int i = 0; i < data.Length; i++) data[i] = i + 1;
 

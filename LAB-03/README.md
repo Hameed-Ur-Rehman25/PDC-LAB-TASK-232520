@@ -7,21 +7,24 @@ Raw console output from every run is in [output.txt](output.txt).
 
 ## Project Structure
 
-| Folder | Task |
+All four tasks are in a single console project, [Lab03/](Lab03/), with one file per task:
+
+| File | Task |
 |---|---|
-| [ProcessLab/](ProcessLab/Program.cs) | Task 1: Process creation and address-space separation |
-| [ArraySumThreads/](ArraySumThreads/Program.cs) | Task 2: Summing array slices across worker threads |
-| [CreationOverhead/](CreationOverhead/Program.cs) | Task 3: Process- vs. thread-creation overhead |
-| [ThreadLifecycle/](ThreadLifecycle/Program.cs) | Task 4: Thread lifecycle states |
+| [Program.cs](Lab03/Program.cs) | Entry point that picks which task to run |
+| [Task1_ProcessLab.cs](Lab03/Task1_ProcessLab.cs) | Task 1: Process creation and address-space separation |
+| [Task2_ArraySumThreads.cs](Lab03/Task2_ArraySumThreads.cs) | Task 2: Summing array slices across worker threads |
+| [Task3_CreationOverhead.cs](Lab03/Task3_CreationOverhead.cs) | Task 3: Process- vs. thread-creation overhead |
+| [Task4_ThreadLifecycle.cs](Lab03/Task4_ThreadLifecycle.cs) | Task 4: Thread lifecycle states |
+
+Tasks 1 and 3 start this same executable as their child process. The `--child` argument runs Task 1's child branch, and `--noop` makes the child exit immediately for Task 3.
 
 ### How to Run
 
 ```bash
-dotnet run --project ProcessLab -c Release
-dotnet run --project ArraySumThreads -c Release
-dotnet build ProcessLab -c Release          # Task 3 launches the ProcessLab executable as its child
-dotnet run --project CreationOverhead -c Release
-dotnet run --project ThreadLifecycle -c Release
+cd Lab03
+dotnet run -c Release            # runs all four tasks in order
+dotnet run -c Release -- 1       # run only Task 1 (use 2, 3 or 4 for the others)
 ```
 
 ---
@@ -34,15 +37,15 @@ The parent starts a second copy of the same executable with `Process.Start()` an
 
 | Role | Process ID (PID) | Final Counter Value |
 |---|---|---|
-| Parent | 19026 | 101 |
-| Child | 19027 | 150 |
+| Parent | 19599 | 101 |
+| Child | 19606 | 150 |
 
-(Run 2 gave parent PID 19028 and child PID 19029, with the same counter values.)
+(Run 2 gave parent PID 19659 and child PID 19660, with the same counter values.)
 
 ### Discussion
 
 **1. Were the PIDs different? What does this confirm?**
-Yes. The parent was 19026 and the child was 19027. This confirms that `Process.Start()` asks the operating system to create a new, separate process with its own identity and resources. The child is not a thread or a function call inside the parent.
+Yes. The parent was 19599 and the child was 19606. This confirms that `Process.Start()` asks the operating system to create a new, separate process with its own identity and resources. The child is not a thread or a function call inside the parent.
 
 **2. Did either process's final counter affect the other's?**
 No. The parent ended with 101 and the child ended with 150. Each process has its own private virtual address space, so each `counter` variable lives in different physical memory. Neither process can see or change the other's variable. Changes in one process stay inside that process.
@@ -83,25 +86,25 @@ All 8 worker threads run inside a single process and share its address space. Th
 
 ## Task 3: Measuring Process- vs. Thread-Creation Overhead
 
-The program runs 50 iterations of each kind after one warm-up round. For processes, it calls `Process.Start()` on the ProcessLab executable with the `--noop` argument, which makes it exit immediately, and then calls `WaitForExit()`. For threads, it runs `new Thread(() => { }).Start()` followed by `Join()`. Both loops are timed with `Stopwatch` in a Release build.
+The program runs 50 iterations of each kind after one warm-up round. For processes, it calls `Process.Start()` on this same Lab03 executable with the `--noop` argument, which makes it exit immediately, and then calls `WaitForExit()`. For threads, it runs `new Thread(() => { }).Start()` followed by `Join()`. Both loops are timed with `Stopwatch` in a Release build.
 
 ### Results
 
 | Run | Avg. Process Creation (ms) | Avg. Thread Creation (ms) | Ratio (Process / Thread) |
 |---|---|---|---|
-| 1 | 45.854 | 0.123 | 372.5× |
-| 2 | 49.361 | 0.128 | 386.2× |
+| 1 | 50.633 | 0.096 | 525.5× |
+| 2 | 75.733 | 0.179 | 424.1× |
 
 ### Discussion
 
 **1. Which was more expensive, and by how much?**
-Creating a process was far more expensive: about 45–49 ms per process, compared with about 0.12 ms per thread. That is roughly **370–390×**, between two and three orders of magnitude.
+Creating a process was far more expensive: about 50–76 ms per process, compared with about 0.1–0.18 ms per thread. That is roughly **420–525×**, between two and three orders of magnitude. Both averages varied between runs because of other activity on the machine, but the ratio stayed in the hundreds.
 
 **2. Why does a process cost more than a thread?**
 To create a process, the OS has to allocate a new virtual address space and page tables. It also has to create a new kernel process object, set up a new handle table and environment, and map and load the executable and its libraries. For a .NET program, the entire .NET runtime then has to start up again (GC heap, JIT, and assembly loading) before `Main` runs. Afterwards, all of this has to be torn down. A thread reuses everything the process already has: the address space, the loaded code, the heap, and open handles. The OS only allocates a stack and a small kernel scheduling structure, then adds the thread to the run queue.
 
 **3. Would the ratio change with more substantial work?**
-The ratio would **shrink** toward 1. The creation cost is roughly fixed, while useful work like summing a large array takes the same time whether a thread or a process does it. Once each unit of work takes much longer than about 45 ms, that work dominates both measurements and the ratio approaches 1. A process would still be somewhat slower if the data had to be copied or sent to it, because it cannot directly read the parent's array the way a thread can.
+The ratio would **shrink** toward 1. The creation cost is roughly fixed, while useful work like summing a large array takes the same time whether a thread or a process does it. Once each unit of work takes much longer than about 50 ms, that work dominates both measurements and the ratio approaches 1. A process would still be somewhat slower if the data had to be copied or sent to it, because it cannot directly read the parent's array the way a thread can.
 
 ---
 
@@ -121,10 +124,10 @@ The ratio would **shrink** toward 1. The creation cost is roughly fixed, while u
 ### Discussion
 
 **1. Why is New → Runnable → Running cheaper for a thread than creating a process?**
-For a thread, **New** is only a managed object. `Start()` asks the OS for a stack and a scheduling entry, which makes it **Runnable**. The scheduler can then move it to **Running** straight away, because its code, data, and runtime are already loaded in the process's address space. Task 3 measured this full path, including termination and `Join()`, at about 0.12 ms. A process has to go through address-space creation, loading the program image, and .NET runtime start-up before its first thread can even reach Running. That took about 45 ms, so a thread gets to useful work several hundred times sooner.
+For a thread, **New** is only a managed object. `Start()` asks the OS for a stack and a scheduling entry, which makes it **Runnable**. The scheduler can then move it to **Running** straight away, because its code, data, and runtime are already loaded in the process's address space. Task 3 measured this full path, including termination and `Join()`, at about 0.1–0.18 ms. A process has to go through address-space creation, loading the program image, and .NET runtime start-up before its first thread can even reach Running. That took about 50–76 ms, so a thread gets to useful work several hundred times sooner.
 
 **2. Why are threads used for fine-grained parallelism?**
-- *Creation overhead (Task 3):* When there are thousands of small tasks, a process's roughly 45 ms start-up cost would be larger than the work itself. Thousands of processes would add minutes of pure overhead, while threads cost fractions of a millisecond each. Thread pools reduce this further by reusing threads.
+- *Creation overhead (Task 3):* When there are thousands of small tasks, a process's roughly 50 ms start-up cost would be larger than the work itself. Thousands of processes would add minutes of pure overhead, while threads cost fractions of a millisecond each. Thread pools reduce this further by reusing threads.
 - *Address-space sharing (Task 2):* Threads can work directly on shared data, such as the same array, and combine results through memory. Processes would need to copy data in and send results back through pipes, files, or shared-memory setup.
 - *Lifecycle speed (Task 4):* A thread moves from Unstarted to Running to Stopped almost immediately. Blocking (`WaitSleepJoin`) and waking up are cheap scheduler operations inside one process. This lets short units of work move through the lifecycle quickly, so more time goes to computation and less to setup.
 
@@ -135,4 +138,4 @@ A web browser runs each tab or site in its own process, and a server may run unt
 
 ## Conclusion
 
-Process and thread behaved as the lab expected. `Process.Start()` created a separate process (different PID and independent counters). Threads shared one address space and correctly computed a parallel sum. Process creation was about 380× more expensive than thread creation on this machine, and `ThreadState` moved through Unstarted → Running → WaitSleepJoin → Stopped. Threads are the better choice for fine-grained parallel work, and processes are worth their cost when isolation is needed.
+Process and thread behaved as the lab expected. `Process.Start()` created a separate process (different PID and independent counters). Threads shared one address space and correctly computed a parallel sum. Process creation was about 420–525× more expensive than thread creation on this machine, and `ThreadState` moved through Unstarted → Running → WaitSleepJoin → Stopped. Threads are the better choice for fine-grained parallel work, and processes are worth their cost when isolation is needed.

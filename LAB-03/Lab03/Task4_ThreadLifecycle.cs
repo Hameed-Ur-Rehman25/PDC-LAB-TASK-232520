@@ -1,14 +1,14 @@
 using System;
 using System.Threading;
 
-class Program
+static class ThreadLifecycle
 {
     static void Worker()
     {
         Thread.Sleep(200);
     }
 
-    static void Main()
+    public static void Run()
     {
         Thread t = new Thread(Worker);
         Console.WriteLine($"After creation:             {t.ThreadState}"); // conceptually: New

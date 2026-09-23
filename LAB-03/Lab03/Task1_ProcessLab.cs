@@ -1,34 +1,9 @@
 using System;
 using System.Diagnostics;
 
-class Program
+static class ProcessLab
 {
-    static void Main(string[] args)
-    {
-        if (args.Length > 0 && args[0] == "--child")
-        {
-            RunAsChild();
-        }
-        else if (args.Length > 0 && args[0] == "--noop")
-        {
-            // Trivial child target for Task 3 (CreationOverhead): exit immediately.
-            return;
-        }
-        else
-        {
-            RunAsParent();
-        }
-    }
-
-    static void RunAsChild()
-    {
-        Console.WriteLine($"[Child]  PID = {Environment.ProcessId}");
-        int counter = 100;
-        counter += 50;
-        Console.WriteLine($"[Child]  final counter = {counter}");
-    }
-
-    static void RunAsParent()
+    public static void Run()
     {
         Console.WriteLine($"[Parent] PID = {Environment.ProcessId}");
         int counter = 100;
@@ -49,5 +24,13 @@ class Program
 
         Console.WriteLine($"[Parent] final counter = {counter}");
         Console.WriteLine("[Parent] Parent and child counters were modified independently (separate address spaces).");
+    }
+
+    public static void RunAsChild()
+    {
+        Console.WriteLine($"[Child]  PID = {Environment.ProcessId}");
+        int counter = 100;
+        counter += 50;
+        Console.WriteLine($"[Child]  final counter = {counter}");
     }
 }
