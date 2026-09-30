@@ -1,0 +1,45 @@
+==================
+WARNING: ThreadSanitizer: data race (pid=84)
+  Read of size 8 at 0x000000404058 by thread T2:
+    #0 worker /lab/race.c:18 (race_tsan+0x4011b4)
+    #1 <null> <null> (libtsan.so.2+0x4bd49)
+
+  Previous write of size 8 at 0x000000404058 by thread T1:
+    #0 worker /lab/race.c:18 (race_tsan+0x4011e5)
+    #1 <null> <null> (libtsan.so.2+0x4bd49)
+
+  Location is global 'counter' of size 8 at 0x000000404058 (race_tsan+0x404058)
+
+  Thread T2 (tid=87, running) created by main thread at:
+    #0 pthread_create <null> (libtsan.so.2+0x566a6)
+    #1 main /lab/race.c:29 (race_tsan+0x40122c)
+
+  Thread T1 (tid=86, finished) created by main thread at:
+    #0 pthread_create <null> (libtsan.so.2+0x566a6)
+    #1 main /lab/race.c:29 (race_tsan+0x40122c)
+
+SUMMARY: ThreadSanitizer: data race /lab/race.c:18 in worker
+==================
+==================
+WARNING: ThreadSanitizer: data race (pid=84)
+  Write of size 8 at 0x000000404058 by thread T3:
+    #0 worker /lab/race.c:18 (race_tsan+0x4011e5)
+    #1 <null> <null> (libtsan.so.2+0x4bd49)
+
+  Previous write of size 8 at 0x000000404058 by thread T2:
+    #0 worker /lab/race.c:18 (race_tsan+0x4011e5)
+    #1 <null> <null> (libtsan.so.2+0x4bd49)
+
+  Location is global 'counter' of size 8 at 0x000000404058 (race_tsan+0x404058)
+
+  Thread T3 (tid=88, running) created by main thread at:
+    #0 pthread_create <null> (libtsan.so.2+0x566a6)
+    #1 main /lab/race.c:29 (race_tsan+0x40122c)
+
+  Thread T2 (tid=87, finished) created by main thread at:
+    #0 pthread_create <null> (libtsan.so.2+0x566a6)
+    #1 main /lab/race.c:29 (race_tsan+0x40122c)
+
+SUMMARY: ThreadSanitizer: data race /lab/race.c:18 in worker
+==================
+ThreadSanitizer: reported 2 warnings
