@@ -1,0 +1,106 @@
+===== Toolchain =====
+gcc (GCC) 14.4.0
+nproc: 8
+TSan OK
+
+===== Task 1: buffer_mutex.c (buffer 8), 5 runs =====
+[mutex buffer=8] items=1000000 checksum=OK order_errors=0 producer_retries=133192 consumer_retries=133996 time=136.78 ms cpu=266.58 ms
+[mutex buffer=8] items=1000000 checksum=OK order_errors=0 producer_retries=136457 consumer_retries=138441 time=145.87 ms cpu=282.00 ms
+[mutex buffer=8] items=1000000 checksum=OK order_errors=0 producer_retries=137766 consumer_retries=141888 time=146.33 ms cpu=281.00 ms
+[mutex buffer=8] items=1000000 checksum=OK order_errors=0 producer_retries=137678 consumer_retries=138696 time=147.45 ms cpu=284.89 ms
+[mutex buffer=8] items=1000000 checksum=OK order_errors=0 producer_retries=137246 consumer_retries=137767 time=147.49 ms cpu=285.35 ms
+--- TSan build (ITEMS=20000)
+[mutex buffer=8] items=20000 checksum=OK order_errors=0 producer_retries=25119 consumer_retries=23092 time=187.17 ms cpu=218.77 ms
+TSan warnings: 0
+--- Buffer size 1 and 64
+[mutex buffer=1] items=1000000 checksum=OK order_errors=0 producer_retries=1039373 consumer_retries=1057116 time=846.07 ms cpu=1660.67 ms
+[mutex buffer=64] items=1000000 checksum=OK order_errors=0 producer_retries=22831 consumer_retries=20598 time=122.30 ms cpu=235.35 ms
+
+===== Task 2: buffer_sem.c, 3 runs per configuration =====
+[sem P=1 C=1 buffer=8] items=100000 lost=0 duplicated=0 time=1126.34 ms cpu=926.11 ms
+[sem P=1 C=1 buffer=8] items=100000 lost=0 duplicated=0 time=1190.86 ms cpu=963.22 ms
+[sem P=1 C=1 buffer=8] items=100000 lost=0 duplicated=0 time=1104.11 ms cpu=913.73 ms
+[sem P=2 C=2 buffer=8] items=200000 lost=0 duplicated=0 time=2017.23 ms cpu=3175.42 ms
+[sem P=2 C=2 buffer=8] items=200000 lost=0 duplicated=0 time=2015.27 ms cpu=3171.02 ms
+[sem P=2 C=2 buffer=8] items=200000 lost=0 duplicated=0 time=2021.78 ms cpu=3155.96 ms
+[sem P=4 C=4 buffer=8] items=400000 lost=0 duplicated=0 time=3511.74 ms cpu=10949.09 ms
+[sem P=4 C=4 buffer=8] items=400000 lost=0 duplicated=0 time=3615.79 ms cpu=11410.06 ms
+[sem P=4 C=4 buffer=8] items=400000 lost=0 duplicated=0 time=3673.29 ms cpu=11376.23 ms
+[sem P=4 C=4 buffer=1] items=400000 lost=0 duplicated=0 time=35124.72 ms cpu=33387.78 ms
+[sem P=4 C=4 buffer=1] items=400000 lost=0 duplicated=0 time=32126.21 ms cpu=30821.27 ms
+[sem P=4 C=4 buffer=1] items=400000 lost=0 duplicated=0 time=31373.36 ms cpu=30838.21 ms
+[sem P=4 C=4 buffer=64] items=400000 lost=0 duplicated=0 time=500.97 ms cpu=1884.78 ms
+[sem P=4 C=4 buffer=64] items=400000 lost=0 duplicated=0 time=440.84 ms cpu=1775.19 ms
+[sem P=4 C=4 buffer=64] items=400000 lost=0 duplicated=0 time=490.38 ms cpu=1855.72 ms
+[sem P=4 C=2 buffer=8] items=400000 lost=0 duplicated=0 time=3497.07 ms cpu=8161.74 ms
+[sem P=4 C=2 buffer=8] items=400000 lost=0 duplicated=0 time=3538.73 ms cpu=8225.93 ms
+[sem P=4 C=2 buffer=8] items=400000 lost=0 duplicated=0 time=3637.97 ms cpu=8374.84 ms
+--- TSan build (4/4/8, ITEMS_PER_PRODUCER=5000)
+[sem P=4 C=4 buffer=8] items=20000 lost=0 duplicated=0 time=379.64 ms cpu=1190.39 ms
+TSan warnings: 0
+--- Deadlock experiment: consumer locks buf_lock before sem_wait
+exit code 124: killed by timeout after 5 s (no progress)
+--- Comparison with Task 1 (Q5): 1/1/8 with 1,000,000 items, 3 runs
+[sem P=1 C=1 buffer=8] items=1000000 lost=0 duplicated=0 time=10572.85 ms cpu=8764.98 ms
+[sem P=1 C=1 buffer=8] items=1000000 lost=0 duplicated=0 time=9651.55 ms cpu=8029.94 ms
+[sem P=1 C=1 buffer=8] items=1000000 lost=0 duplicated=0 time=10006.36 ms cpu=8401.52 ms
+
+===== Task 3: cond_signal.c, 4 scenarios =====
+--- cond_a
+worker 0: blocked=1 polls=0 value=42
+wall=1001.77 ms cpu=1.22 ms
+--- cond_b
+worker 0: blocked=0 polls=0 value=42
+wall=0.58 ms cpu=0.57 ms
+--- cond_c
+worker 0: blocked=1 polls=0 value=42
+worker 1: blocked=1 polls=0 value=42
+worker 2: blocked=1 polls=0 value=42
+wall=1001.85 ms cpu=2.76 ms
+--- cond_d
+worker 0: blocked=0 polls=68071260 value=42
+wall=1000.69 ms cpu=1000.66 ms
+--- TSan build (variant A, DELAY_MS=200)
+worker 0: blocked=1 polls=0 value=42
+wall=202.80 ms cpu=2.30 ms
+TSan warnings: 0
+--- Lost-signal experiment: variant A without the signal call
+exit code 124: killed by timeout after 5 s (no progress)
+--- Extra (Q5): 3 workers with pthread_cond_signal instead of broadcast
+exit code 124: killed by timeout after 5 s (no progress)
+
+===== Task 4: phase_barrier.c (4 workers), 5 runs per version =====
+[barrier workers=4 rounds=10000] correct=YES mismatching_cells=0/4096 checksum=abe2e000 time=3085.81 ms
+[barrier workers=4 rounds=10000] correct=YES mismatching_cells=0/4096 checksum=abe2e000 time=2975.49 ms
+[barrier workers=4 rounds=10000] correct=YES mismatching_cells=0/4096 checksum=abe2e000 time=2993.45 ms
+[barrier workers=4 rounds=10000] correct=YES mismatching_cells=0/4096 checksum=abe2e000 time=3085.62 ms
+[barrier workers=4 rounds=10000] correct=YES mismatching_cells=0/4096 checksum=abe2e000 time=3021.35 ms
+[no barrier workers=4 rounds=10000] correct=NO mismatching_cells=4096/4096 checksum=03ee3632 time=18.46 ms
+[no barrier workers=4 rounds=10000] correct=NO mismatching_cells=4096/4096 checksum=d45a2a87 time=16.97 ms
+[no barrier workers=4 rounds=10000] correct=NO mismatching_cells=4096/4096 checksum=53a8635d time=17.66 ms
+[no barrier workers=4 rounds=10000] correct=NO mismatching_cells=4096/4096 checksum=afb24946 time=16.35 ms
+[no barrier workers=4 rounds=10000] correct=NO mismatching_cells=4096/4096 checksum=8327bda1 time=15.93 ms
+--- TSan build (ROUNDS=2000)
+[barrier workers=4 rounds=2000] correct=YES mismatching_cells=0/4096 checksum=90a92000 time=870.78 ms
+TSan warnings: 0
+--- 8 workers
+[barrier workers=8 rounds=10000] correct=YES mismatching_cells=0/4096 checksum=abe2e000 time=7695.48 ms
+
+===== Task 5: lockfree_stack.c (4 threads), 5 runs =====
+[lock-free stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=56.04 ms
+[lock-free stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=56.81 ms
+[lock-free stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=57.85 ms
+[lock-free stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=56.58 ms
+[lock-free stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=52.96 ms
+--- TSan build (NODES_PER_THREAD=5000)
+[lock-free stack threads=4] nodes=20000 lost=0 duplicated=0 stack_empty=YES time=30.14 ms
+TSan warnings: 0
+--- 8 threads
+[lock-free stack threads=8] nodes=800000 lost=0 duplicated=0 stack_empty=YES time=145.98 ms
+--- Mutex stack for comparison (Q5): 4 threads x5, 8 threads x1
+[mutex stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=40.47 ms
+[mutex stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=42.21 ms
+[mutex stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=42.57 ms
+[mutex stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=40.79 ms
+[mutex stack threads=4] nodes=400000 lost=0 duplicated=0 stack_empty=YES time=41.15 ms
+[mutex stack threads=8] nodes=800000 lost=0 duplicated=0 stack_empty=YES time=110.97 ms
