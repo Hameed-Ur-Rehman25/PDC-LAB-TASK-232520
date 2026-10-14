@@ -1,0 +1,165 @@
+===== Toolchain =====
+gcc (GCC) 14.4.0
+nproc: 8
+OpenMP OK
+
+============================================================
+===== Task 1: hello_omp.c -- parallel region and thread IDs =====
+============================================================
+--- OMP_NUM_THREADS=1, run 1
+before region: omp_get_num_threads() = 1
+Hello from thread 0 of 1
+after region:  omp_get_num_threads() = 1
+--- OMP_NUM_THREADS=1, run 2
+before region: omp_get_num_threads() = 1
+Hello from thread 0 of 1
+after region:  omp_get_num_threads() = 1
+--- OMP_NUM_THREADS=2, run 1
+before region: omp_get_num_threads() = 1
+Hello from thread 0 of 2
+Hello from thread 1 of 2
+after region:  omp_get_num_threads() = 1
+--- OMP_NUM_THREADS=2, run 2
+before region: omp_get_num_threads() = 1
+Hello from thread 0 of 2
+Hello from thread 1 of 2
+after region:  omp_get_num_threads() = 1
+--- OMP_NUM_THREADS=4, run 1
+before region: omp_get_num_threads() = 1
+Hello from thread 2 of 4
+Hello from thread 0 of 4
+Hello from thread 1 of 4
+Hello from thread 3 of 4
+after region:  omp_get_num_threads() = 1
+--- OMP_NUM_THREADS=4, run 2
+before region: omp_get_num_threads() = 1
+Hello from thread 1 of 4
+Hello from thread 3 of 4
+Hello from thread 0 of 4
+Hello from thread 2 of 4
+after region:  omp_get_num_threads() = 1
+--- OMP_NUM_THREADS=8, run 1
+before region: omp_get_num_threads() = 1
+Hello from thread 0 of 8
+Hello from thread 7 of 8
+Hello from thread 4 of 8
+Hello from thread 2 of 8
+Hello from thread 1 of 8
+Hello from thread 3 of 8
+Hello from thread 5 of 8
+Hello from thread 6 of 8
+after region:  omp_get_num_threads() = 1
+--- OMP_NUM_THREADS=8, run 2
+before region: omp_get_num_threads() = 1
+Hello from thread 0 of 8
+Hello from thread 7 of 8
+Hello from thread 4 of 8
+Hello from thread 2 of 8
+Hello from thread 6 of 8
+Hello from thread 3 of 8
+Hello from thread 5 of 8
+Hello from thread 1 of 8
+after region:  omp_get_num_threads() = 1
+--- Clause experiment: -DCLAUSE_THREADS=3 with OMP_NUM_THREADS=8
+before region: omp_get_num_threads() = 1
+Hello from thread 2 of 3
+Hello from thread 0 of 3
+Hello from thread 1 of 3
+after region:  omp_get_num_threads() = 1
+
+============================================================
+===== Task 2: vecadd.c -- parallel for and speedup =====
+============================================================
+threads=1  N=5000000  passes=20  time=116.65 ms  correct=YES
+threads=1  N=5000000  passes=20  time=125.84 ms  correct=YES
+threads=1  N=5000000  passes=20  time=165.42 ms  correct=YES
+threads=2  N=5000000  passes=20  time=87.53 ms  correct=YES
+threads=2  N=5000000  passes=20  time=89.57 ms  correct=YES
+threads=2  N=5000000  passes=20  time=87.82 ms  correct=YES
+threads=4  N=5000000  passes=20  time=72.60 ms  correct=YES
+threads=4  N=5000000  passes=20  time=79.38 ms  correct=YES
+threads=4  N=5000000  passes=20  time=76.04 ms  correct=YES
+threads=8  N=5000000  passes=20  time=80.09 ms  correct=YES
+threads=8  N=5000000  passes=20  time=85.72 ms  correct=YES
+threads=8  N=5000000  passes=20  time=87.31 ms  correct=YES
+--- Scoping experiment: drop n from shared(...) with default(none) (must fail)
+/lab/vecadd.c: In function 'vec_add':
+/lab/vecadd.c:32:13: error: 'n' not specified in enclosing 'parallel'
+   32 |     #pragma omp parallel for default(none) shared(a, b, c) private(i)
+      |             ^~~
+/lab/vecadd.c:32:13: note: enclosing 'parallel'
+
+============================================================
+===== Task 3: scoping_bug.c -- missing private and two fixes =====
+============================================================
+--- Buggy version, 10 runs with 4 threads
+threads=4  N=1000000  wrong_elements=4237
+threads=4  N=1000000  wrong_elements=2582
+threads=4  N=1000000  wrong_elements=362
+threads=4  N=1000000  wrong_elements=418
+threads=4  N=1000000  wrong_elements=2255
+threads=4  N=1000000  wrong_elements=7870
+threads=4  N=1000000  wrong_elements=381
+threads=4  N=1000000  wrong_elements=400
+threads=4  N=1000000  wrong_elements=7041
+threads=4  N=1000000  wrong_elements=633
+--- Buggy version, 1 thread
+threads=1  N=1000000  wrong_elements=0
+--- FIX_PRIVATE, 10 runs with 4 threads
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+--- FIX_LOCAL, 10 runs with 4 threads
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+threads=4  N=1000000  wrong_elements=0
+--- DEFAULT_NONE build (must fail to compile)
+/lab/scoping_bug.c: In function 'main':
+/lab/scoping_bug.c:54:13: error: 'tmp' not specified in enclosing 'parallel'
+   54 |         tmp = in[i] * 3;
+      |         ~~~~^~~~~~~~~~~
+/lab/scoping_bug.c:52:13: note: enclosing 'parallel'
+   52 |     #pragma omp parallel for default(none) shared(in, out) private(i)
+      |             ^~~
+
+============================================================
+===== Task 4: omp_sections.c -- independent sections =====
+============================================================
+--- OMP_NUM_THREADS=1
+serial: A=0.327s B=2.261s C=0.614s total=3.202s
+threads=1  wall=3.080s  speedup=1.04  thread_of_A=0 B=0 C=0  results_match=YES
+--- OMP_NUM_THREADS=2
+serial: A=0.321s B=2.256s C=0.612s total=3.189s
+threads=2  wall=2.342s  speedup=1.36  thread_of_A=0 B=1 C=0  results_match=YES
+--- OMP_NUM_THREADS=3
+serial: A=0.333s B=2.270s C=0.606s total=3.210s
+threads=3  wall=2.290s  speedup=1.40  thread_of_A=1 B=0 C=2  results_match=YES
+--- OMP_NUM_THREADS=4
+serial: A=0.320s B=2.244s C=0.615s total=3.179s
+threads=4  wall=2.395s  speedup=1.33  thread_of_A=3 B=2 C=0  results_match=YES
+--- OMP_NUM_THREADS=8
+serial: A=0.318s B=2.256s C=0.616s total=3.190s
+threads=8  wall=2.368s  speedup=1.35  thread_of_A=6 B=5 C=0  results_match=YES
+--- 3 threads, 3 runs (thread-assignment check)
+serial: A=0.323s B=2.256s C=0.609s total=3.187s
+threads=3  wall=2.392s  speedup=1.33  thread_of_A=0 B=1 C=2  results_match=YES
+serial: A=0.321s B=2.245s C=0.631s total=3.197s
+threads=3  wall=2.365s  speedup=1.35  thread_of_A=0 B=1 C=2  results_match=YES
+serial: A=0.317s B=2.258s C=0.616s total=3.192s
+threads=3  wall=2.338s  speedup=1.37  thread_of_A=0 B=1 C=2  results_match=YES
+
+===== Done =====
