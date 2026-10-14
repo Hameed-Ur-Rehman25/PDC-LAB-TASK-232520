@@ -27,61 +27,61 @@ after region:  omp_get_num_threads() = 1
 --- OMP_NUM_THREADS=4, run 1
 before region: omp_get_num_threads() = 1
 Hello from thread 2 of 4
-Hello from thread 0 of 4
-Hello from thread 1 of 4
 Hello from thread 3 of 4
+Hello from thread 1 of 4
+Hello from thread 0 of 4
 after region:  omp_get_num_threads() = 1
 --- OMP_NUM_THREADS=4, run 2
 before region: omp_get_num_threads() = 1
-Hello from thread 1 of 4
-Hello from thread 3 of 4
-Hello from thread 0 of 4
 Hello from thread 2 of 4
+Hello from thread 3 of 4
+Hello from thread 1 of 4
+Hello from thread 0 of 4
 after region:  omp_get_num_threads() = 1
 --- OMP_NUM_THREADS=8, run 1
 before region: omp_get_num_threads() = 1
-Hello from thread 0 of 8
-Hello from thread 7 of 8
-Hello from thread 4 of 8
-Hello from thread 2 of 8
-Hello from thread 1 of 8
-Hello from thread 3 of 8
-Hello from thread 5 of 8
 Hello from thread 6 of 8
+Hello from thread 7 of 8
+Hello from thread 3 of 8
+Hello from thread 4 of 8
+Hello from thread 1 of 8
+Hello from thread 2 of 8
+Hello from thread 0 of 8
+Hello from thread 5 of 8
 after region:  omp_get_num_threads() = 1
 --- OMP_NUM_THREADS=8, run 2
 before region: omp_get_num_threads() = 1
 Hello from thread 0 of 8
 Hello from thread 7 of 8
-Hello from thread 4 of 8
-Hello from thread 2 of 8
 Hello from thread 6 of 8
+Hello from thread 2 of 8
 Hello from thread 3 of 8
 Hello from thread 5 of 8
 Hello from thread 1 of 8
+Hello from thread 4 of 8
 after region:  omp_get_num_threads() = 1
 --- Clause experiment: -DCLAUSE_THREADS=3 with OMP_NUM_THREADS=8
 before region: omp_get_num_threads() = 1
+Hello from thread 1 of 3
 Hello from thread 2 of 3
 Hello from thread 0 of 3
-Hello from thread 1 of 3
 after region:  omp_get_num_threads() = 1
 
 ============================================================
 ===== Task 2: vecadd.c -- parallel for and speedup =====
 ============================================================
-threads=1  N=5000000  passes=20  time=116.65 ms  correct=YES
-threads=1  N=5000000  passes=20  time=125.84 ms  correct=YES
-threads=1  N=5000000  passes=20  time=165.42 ms  correct=YES
-threads=2  N=5000000  passes=20  time=87.53 ms  correct=YES
-threads=2  N=5000000  passes=20  time=89.57 ms  correct=YES
-threads=2  N=5000000  passes=20  time=87.82 ms  correct=YES
-threads=4  N=5000000  passes=20  time=72.60 ms  correct=YES
-threads=4  N=5000000  passes=20  time=79.38 ms  correct=YES
-threads=4  N=5000000  passes=20  time=76.04 ms  correct=YES
-threads=8  N=5000000  passes=20  time=80.09 ms  correct=YES
-threads=8  N=5000000  passes=20  time=85.72 ms  correct=YES
-threads=8  N=5000000  passes=20  time=87.31 ms  correct=YES
+threads=1  N=5000000  passes=20  time=214.22 ms  correct=YES
+threads=1  N=5000000  passes=20  time=183.24 ms  correct=YES
+threads=1  N=5000000  passes=20  time=194.58 ms  correct=YES
+threads=2  N=5000000  passes=20  time=97.90 ms  correct=YES
+threads=2  N=5000000  passes=20  time=103.17 ms  correct=YES
+threads=2  N=5000000  passes=20  time=89.05 ms  correct=YES
+threads=4  N=5000000  passes=20  time=82.07 ms  correct=YES
+threads=4  N=5000000  passes=20  time=85.46 ms  correct=YES
+threads=4  N=5000000  passes=20  time=77.98 ms  correct=YES
+threads=8  N=5000000  passes=20  time=83.01 ms  correct=YES
+threads=8  N=5000000  passes=20  time=87.13 ms  correct=YES
+threads=8  N=5000000  passes=20  time=102.53 ms  correct=YES
 --- Scoping experiment: drop n from shared(...) with default(none) (must fail)
 /lab/vecadd.c: In function 'vec_add':
 /lab/vecadd.c:32:13: error: 'n' not specified in enclosing 'parallel'
@@ -93,16 +93,16 @@ threads=8  N=5000000  passes=20  time=87.31 ms  correct=YES
 ===== Task 3: scoping_bug.c -- missing private and two fixes =====
 ============================================================
 --- Buggy version, 10 runs with 4 threads
-threads=4  N=1000000  wrong_elements=4237
-threads=4  N=1000000  wrong_elements=2582
-threads=4  N=1000000  wrong_elements=362
-threads=4  N=1000000  wrong_elements=418
-threads=4  N=1000000  wrong_elements=2255
-threads=4  N=1000000  wrong_elements=7870
-threads=4  N=1000000  wrong_elements=381
-threads=4  N=1000000  wrong_elements=400
-threads=4  N=1000000  wrong_elements=7041
-threads=4  N=1000000  wrong_elements=633
+threads=4  N=1000000  wrong_elements=3406
+threads=4  N=1000000  wrong_elements=10163
+threads=4  N=1000000  wrong_elements=6482
+threads=4  N=1000000  wrong_elements=3737
+threads=4  N=1000000  wrong_elements=21334
+threads=4  N=1000000  wrong_elements=10413
+threads=4  N=1000000  wrong_elements=4231
+threads=4  N=1000000  wrong_elements=2282
+threads=4  N=1000000  wrong_elements=3220
+threads=4  N=1000000  wrong_elements=8949
 --- Buggy version, 1 thread
 threads=1  N=1000000  wrong_elements=0
 --- FIX_PRIVATE, 10 runs with 4 threads
@@ -140,26 +140,26 @@ threads=4  N=1000000  wrong_elements=0
 ===== Task 4: omp_sections.c -- independent sections =====
 ============================================================
 --- OMP_NUM_THREADS=1
-serial: A=0.327s B=2.261s C=0.614s total=3.202s
-threads=1  wall=3.080s  speedup=1.04  thread_of_A=0 B=0 C=0  results_match=YES
+serial: A=0.433s B=2.439s C=0.648s total=3.521s
+threads=1  wall=3.378s  speedup=1.04  thread_of_A=0 B=0 C=0  results_match=YES
 --- OMP_NUM_THREADS=2
-serial: A=0.321s B=2.256s C=0.612s total=3.189s
-threads=2  wall=2.342s  speedup=1.36  thread_of_A=0 B=1 C=0  results_match=YES
+serial: A=0.325s B=2.464s C=0.637s total=3.426s
+threads=2  wall=2.563s  speedup=1.34  thread_of_A=1 B=0 C=1  results_match=YES
 --- OMP_NUM_THREADS=3
-serial: A=0.333s B=2.270s C=0.606s total=3.210s
-threads=3  wall=2.290s  speedup=1.40  thread_of_A=1 B=0 C=2  results_match=YES
+serial: A=0.329s B=2.272s C=0.592s total=3.194s
+threads=3  wall=2.402s  speedup=1.33  thread_of_A=0 B=2 C=1  results_match=YES
 --- OMP_NUM_THREADS=4
-serial: A=0.320s B=2.244s C=0.615s total=3.179s
-threads=4  wall=2.395s  speedup=1.33  thread_of_A=3 B=2 C=0  results_match=YES
+serial: A=0.318s B=2.201s C=0.601s total=3.121s
+threads=4  wall=2.290s  speedup=1.36  thread_of_A=0 B=2 C=1  results_match=YES
 --- OMP_NUM_THREADS=8
-serial: A=0.318s B=2.256s C=0.616s total=3.190s
-threads=8  wall=2.368s  speedup=1.35  thread_of_A=6 B=5 C=0  results_match=YES
+serial: A=0.362s B=2.222s C=0.598s total=3.182s
+threads=8  wall=2.313s  speedup=1.38  thread_of_A=4 B=1 C=2  results_match=YES
 --- 3 threads, 3 runs (thread-assignment check)
-serial: A=0.323s B=2.256s C=0.609s total=3.187s
-threads=3  wall=2.392s  speedup=1.33  thread_of_A=0 B=1 C=2  results_match=YES
-serial: A=0.321s B=2.245s C=0.631s total=3.197s
-threads=3  wall=2.365s  speedup=1.35  thread_of_A=0 B=1 C=2  results_match=YES
-serial: A=0.317s B=2.258s C=0.616s total=3.192s
-threads=3  wall=2.338s  speedup=1.37  thread_of_A=0 B=1 C=2  results_match=YES
+serial: A=0.327s B=2.190s C=0.603s total=3.120s
+threads=3  wall=2.313s  speedup=1.35  thread_of_A=0 B=1 C=2  results_match=YES
+serial: A=0.316s B=2.306s C=0.602s total=3.224s
+threads=3  wall=2.297s  speedup=1.40  thread_of_A=0 B=1 C=2  results_match=YES
+serial: A=0.322s B=2.206s C=0.597s total=3.125s
+threads=3  wall=2.299s  speedup=1.36  thread_of_A=0 B=1 C=2  results_match=YES
 
 ===== Done =====

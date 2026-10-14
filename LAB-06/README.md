@@ -54,8 +54,8 @@ Each thread in the team prints its own ID (`omp_get_thread_num()`) and the team 
 |---|---|---|---|---|
 | 1 | 1 | 0 | 0 | Y |
 | 2 | 2 | 0, 1 | 0, 1 | Y |
-| 4 | 4 | 2, 0, 1, 3 | 1, 3, 0, 2 | **N** |
-| 8 | 8 | 0, 7, 4, 2, 1, 3, 5, 6 | 0, 7, 4, 2, 6, 3, 5, 1 | **N** |
+| 4 | 4 | 2, 3, 1, 0 | 2, 3, 1, 0 | Y |
+| 8 | 8 | 6, 7, 3, 4, 1, 2, 0, 5 | 0, 7, 6, 2, 3, 5, 1, 4 | **N** |
 
 **Number of logical cores (nproc): 8**
 **Team size with `-DCLAUSE_THREADS=3` and `OMP_NUM_THREADS=8`: 3**
@@ -63,7 +63,7 @@ Each thread in the team prints its own ID (`omp_get_thread_num()`) and the team 
 ### Discussion questions
 
 **1. Were the IDs printed in the same order in every run? Why no ordering guarantee?**
-No. With 4 and 8 threads the order changed between runs. The threads run concurrently and the OS schedules them independently, so whichever thread reaches its `printf` first prints first. The OpenMP standard deliberately makes no ordering promise because the whole point of a parallel region is that the threads run at the same time, not in a fixed sequence. To print strictly in ID order you would have to serialise the output — for example `#pragma omp ordered` inside an ordered loop, or an ordered loop with `#pragma omp critical`, or simply collect each thread's text into an array and print it in order after the region.
+Not reliably. With 8 threads the order changed between runs; with 4 threads the two runs happened to match this time, but that is luck, not a guarantee. The threads run concurrently and the OS schedules them independently, so whichever thread reaches its `printf` first prints first. The OpenMP standard deliberately makes no ordering promise because the whole point of a parallel region is that the threads run at the same time, not in a fixed sequence. To print strictly in ID order you would have to serialise the output — for example `#pragma omp ordered` inside an ordered loop, or an ordered loop with `#pragma omp critical`, or simply collect each thread's text into an array and print it in order after the region.
 
 **2. What did `omp_get_num_threads()` return before and after the region, and why different inside?**
 Before and after the region it returned **1**. Outside any parallel region only the single initial (master) thread is running, so the "team" has one member. Inside the region it returned the actual team size (2, 4, 8, …) because there the function reports the number of threads in the team currently executing that region.
@@ -86,10 +86,10 @@ That many threads are still created — OpenMP honours the request. But with mor
 
 | Threads | Run 1 (ms) | Run 2 (ms) | Run 3 (ms) | Average (ms) | Speedup | Correct? |
 |---|---|---|---|---|---|---|
-| 1 | 116.65 | 125.84 | 165.42 | 135.97 | 1.00 | Y |
-| 2 | 87.53 | 89.57 | 87.82 | 88.31 | 1.54 | Y |
-| 4 | 72.60 | 79.38 | 76.04 | 76.01 | 1.79 | Y |
-| 8 | 80.09 | 85.72 | 87.31 | 84.37 | 1.61 | Y |
+| 1 | 214.22 | 183.24 | 194.58 | 197.35 | 1.00 | Y |
+| 2 | 97.90 | 103.17 | 89.05 | 96.71 | 2.04 | Y |
+| 4 | 82.07 | 85.46 | 77.98 | 81.84 | 2.41 | Y |
+| 8 | 83.01 | 87.13 | 102.53 | 90.89 | 2.17 | Y |
 
 **Compiler error message when `n` was removed from `shared(...)`:**
 
@@ -109,7 +109,7 @@ The iteration variable of a `parallel for` is made **private automatically** by 
 `default(none)` removes the implicit default, so the compiler refuses to guess any variable's sharing — every variable used in the region must be named in `shared`, `private`, etc. When `n` was dropped the build failed with *"'n' not specified in enclosing 'parallel'"* instead of compiling silently. On a large program this turns an easily-missed scoping mistake into a compile error you cannot ignore.
 
 **3. Describe the speedup. Why does vector addition scale poorly?**
-Speedup rose to about 1.8× at 4 threads and then fell back to 1.6× at 8. Vector addition is **memory-bandwidth bound**: each element does one add but needs three memory transfers (read `a`, read `b`, write `c`). A few threads are enough to saturate the memory bus, so adding more threads gives them no extra bandwidth to work with — they just contend for the same memory, which is why 8 threads were slower than 4.
+Speedup rose to about 2.4× at 4 threads and then fell back to 2.2× at 8. Vector addition is **memory-bandwidth bound**: each element does one add but needs three memory transfers (read `a`, read `b`, write `c`). A few threads are enough to saturate the memory bus, so adding more threads gives them no extra bandwidth to work with — they just contend for the same memory, which is why 8 threads were slower than 4.
 
 **4. Why is the result correct without any lock or atomic?**
 Because the iterations are independent: iteration `i` reads `a[i]`, `b[i]` and writes only `c[i]`. No two threads ever touch the same element, so there is no shared write to protect. The only synchronisation needed is the **implicit barrier at the end of the `parallel for`**, which guarantees every element is written before the program reads the array back.
@@ -127,16 +127,16 @@ Each iteration does `tmp = in[i] * 3; out[i] = tmp + 7;`. In the buggy build `tm
 
 | Run | Buggy version | FIX_PRIVATE | FIX_LOCAL |
 |---|---|---|---|
-| 1 | 748 | 0 | 0 |
-| 2 | 631 | 0 | 0 |
-| 3 | 37 | 0 | 0 |
-| 4 | 13 | 0 | 0 |
-| 5 | 19 | 0 | 0 |
-| 6 | 525 | 0 | 0 |
-| 7 | 133 | 0 | 0 |
-| 8 | 4245 | 0 | 0 |
-| 9 | 2807 | 0 | 0 |
-| 10 | 2942 | 0 | 0 |
+| 1 | 3406 | 0 | 0 |
+| 2 | 10163 | 0 | 0 |
+| 3 | 6482 | 0 | 0 |
+| 4 | 3737 | 0 | 0 |
+| 5 | 21334 | 0 | 0 |
+| 6 | 10413 | 0 | 0 |
+| 7 | 4231 | 0 | 0 |
+| 8 | 2282 | 0 | 0 |
+| 9 | 3220 | 0 | 0 |
+| 10 | 8949 | 0 | 0 |
 
 **Buggy version with `OMP_NUM_THREADS=1`, wrong elements: 0**
 **nproc: 8**
@@ -154,7 +154,7 @@ scoping_bug.c:52:13: note: enclosing 'parallel'
 ### Discussion questions
 
 **1. Did the buggy version give the same number of wrong elements every run? What with one thread?**
-No — the count jumped around wildly (from 13 to 4245) across the ten runs, and with **one thread it was always 0**. That is the signature of a race condition: the result depends on the exact interleaving the scheduler happens to pick, which varies run to run. With a single thread there is no other thread to overwrite `tmp`, so the bug cannot appear. This is also why a correct-looking run proves nothing — run 4 produced only 13 wrong elements, but the code was still broken.
+No — the count jumped around wildly (from 2282 to 21334) across the ten runs, and with **one thread it was always 0**. That is the signature of a race condition: the result depends on the exact interleaving the scheduler happens to pick, which varies run to run. With a single thread there is no other thread to overwrite `tmp`, so the bug cannot appear. This is also why a correct-looking run proves nothing — the lowest run still had 2282 wrong elements, and a smaller count would not have meant the code was fixed.
 
 **2. A two-thread interleaving that makes `out[i]` wrong.**
 Thread 0 works on index `i`, thread 1 on index `j`, sharing the one `tmp`:
@@ -188,26 +188,26 @@ A = Σ√i, B = Σ sin·cos, C = Σ log(i+1), over 120,000,000 iterations each. 
 
 | Threads | Wall time (s) | Speedup | Thread of A / B / C | Results match? |
 |---|---|---|---|---|
-| 1 | 3.080 | 1.04 | 0 / 0 / 0 | Y |
-| 2 | 2.342 | 1.36 | 0 / 1 / 0 | Y |
-| 3 | 2.290 | 1.40 | 1 / 0 / 2 | Y |
-| 4 | 2.395 | 1.33 | 3 / 2 / 0 | Y |
-| 8 | 2.368 | 1.35 | 6 / 5 / 0 | Y |
+| 1 | 3.378 | 1.04 | 0 / 0 / 0 | Y |
+| 2 | 2.563 | 1.34 | 1 / 0 / 1 | Y |
+| 3 | 2.402 | 1.33 | 0 / 2 / 1 | Y |
+| 4 | 2.290 | 1.36 | 0 / 2 / 1 | Y |
+| 8 | 2.313 | 1.38 | 4 / 1 / 2 | Y |
 
-**Serial times (s): A ≈ 0.32, B ≈ 2.26, C ≈ 0.61, total ≈ 3.19**
+**Serial times (s): A ≈ 0.33, B ≈ 2.3, C ≈ 0.60, total ≈ 3.2**
 
 Three-thread assignment over three runs: A→0, B→1, C→2 every time (on this build/runtime), but see Q3.
 
 ### Discussion questions
 
 **1. Which operation took longest? What limits the speedup?**
-**B** was by far the longest (≈ 2.26 s against A ≈ 0.32 s and C ≈ 0.61 s). With 3 threads the wall time was 2.29 s — essentially equal to B alone, and much less than the 3.19 s serial total. The speedup is limited to about **total / longest = 3.19 / 2.26 ≈ 1.4×** because each section is one indivisible unit of work: once A and C finish early, their threads sit idle waiting for B at the implicit barrier. `sections` can only run the three pieces side by side; it cannot split the longest one.
+**B** was by far the longest (≈ 2.3 s against A ≈ 0.33 s and C ≈ 0.60 s). With 3 threads the wall time was 2.40 s — essentially equal to B alone, and much less than the 3.2 s serial total. The speedup is limited to about **total / longest = 3.2 / 2.3 ≈ 1.4×** because each section is one indivisible unit of work: once A and C finish early, their threads sit idle waiting for B at the implicit barrier. `sections` can only run the three pieces side by side; it cannot split the longest one.
 
 **2. Why did 4 and 8 threads not improve on 3?**
 There are only **three sections**, so at most three threads can ever be busy. With 4 or 8 threads the extra threads are handed no section — they go straight to the implicit barrier and wait. The run time stays pinned to section B, so 4 and 8 threads were no faster than 3.
 
 **3. Was the same thread assigned to the same section every run? Does the standard guarantee it?**
-In these three 3-thread runs the assignment happened to be stable (A→0, B→1, C→2), but the standard gives **no guarantee** at all about which thread runs which section — at 4 threads A was run by thread 3, at 8 by thread 6. The mapping of sections to threads is entirely implementation- and schedule-dependent, so correct code must never rely on it.
+In these three 3-thread runs the assignment happened to be stable (A→0, B→1, C→2), but the standard gives **no guarantee** at all about which thread runs which section — at 8 threads A was run by thread 4 and B by thread 1. The mapping of sections to threads is entirely implementation- and schedule-dependent, so correct code must never rely on it.
 
 **4. Why must sections be independent?**
 Because they run concurrently with no synchronisation between them. If A and B both wrote to the same variable, their writes could interleave into a race exactly like Task 3 — one section's update lost or read half-finished by the other — giving a nondeterministic wrong result. Each section writing only its own output (`a_par`, `b_par`, `c_par` here) is what makes running them in parallel safe.
