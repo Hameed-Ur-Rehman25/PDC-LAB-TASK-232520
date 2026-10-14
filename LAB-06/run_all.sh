@@ -36,7 +36,8 @@ for t in 1 2 4 8; do
     for r in 1 2 3; do OMP_NUM_THREADS=$t ./vecadd; done
 done
 echo "--- Scoping experiment: drop n from shared(...) with default(none) (must fail)"
-$CC -DDROP_N_FROM_SHARED "$SRC/vecadd.c" -o vecadd_bad 2>&1 | head -12 || true
+sed 's/shared(a, b, c, n)/shared(a, b, c)/' "$SRC/vecadd.c" > vecadd_bad.c
+$CC vecadd_bad.c -o vecadd_bad 2>&1 | head -12 || true
 
 echo; echo "============================================================"
 echo "===== Task 3: scoping_bug.c -- missing private and two fixes ====="
