@@ -1,0 +1,159 @@
+===== Toolchain =====
+gcc (GCC) 14.4.0
+nproc: 8
+cache line (LEVEL1_DCACHE_LINESIZE): 64
+OpenMP OK
+
+============================================================
+===== Task 1: reduction.c -- reduction vs critical =====
+============================================================
+--- Main run with 4 threads
+threads=4 n=10000000 reps=3
+[serial          ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=4.00 ms
+[racy            ] sum=125002518436 max=100002 sum_ok=NO max_ok=YES avg_time=2.16 ms
+[critical-each   ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=681.68 ms
+[critical-partial] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=2.21 ms
+[reduction       ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=1.83 ms
+--- Scaling run: t = 1 2 4 8
+(OMP_NUM_THREADS=1)
+threads=1 n=10000000 reps=3
+[serial          ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=4.71 ms
+[racy            ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=6.48 ms
+[critical-each   ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=171.70 ms
+[critical-partial] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=7.79 ms
+[reduction       ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=7.70 ms
+(OMP_NUM_THREADS=2)
+threads=2 n=10000000 reps=3
+[serial          ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=4.47 ms
+[racy            ] sum=250004952063 max=100002 sum_ok=NO max_ok=YES avg_time=2.97 ms
+[critical-each   ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=337.89 ms
+[critical-partial] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=4.67 ms
+[reduction       ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=4.68 ms
+(OMP_NUM_THREADS=4)
+threads=4 n=10000000 reps=3
+[serial          ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=3.95 ms
+[racy            ] sum=125002447550 max=100002 sum_ok=NO max_ok=YES avg_time=2.07 ms
+[critical-each   ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=650.09 ms
+[critical-partial] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=2.07 ms
+[reduction       ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=2.11 ms
+(OMP_NUM_THREADS=8)
+threads=8 n=10000000 reps=3
+[serial          ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=4.59 ms
+[racy            ] sum=62501386121 max=100002 sum_ok=NO max_ok=YES avg_time=2.43 ms
+[critical-each   ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=1028.39 ms
+[critical-partial] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=4.85 ms
+[reduction       ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=1.50 ms
+--- Two more runs with 4 threads (racy repeatability, Q1)
+threads=4 n=10000000 reps=3
+[serial          ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=6.44 ms
+[racy            ] sum=125002518436 max=100002 sum_ok=NO max_ok=YES avg_time=2.66 ms
+[critical-each   ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=635.31 ms
+[critical-partial] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=2.83 ms
+[reduction       ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=2.92 ms
+threads=4 n=10000000 reps=3
+[serial          ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=5.14 ms
+[racy            ] sum=125002504513 max=100002 sum_ok=NO max_ok=YES avg_time=1.92 ms
+[critical-each   ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=664.38 ms
+[critical-partial] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=2.77 ms
+[reduction       ] sum=500009931972 max=100002 sum_ok=YES max_ok=YES avg_time=2.95 ms
+
+============================================================
+===== Task 2: schedule_bench.c -- scheduling on an uneven workload =====
+============================================================
+--- OMP_NUM_THREADS=2
+workload=uneven n=20000 threads=2 serial=276.5 (all times in ms)
+[static    ] wall=  198.8 busy_max=  198.5 busy_min=   65.4 imbalance= 3.03 correct=YES
+[static,1  ] wall=  132.9 busy_max=  132.9 busy_min=  131.2 imbalance= 1.01 correct=YES
+[static,64 ] wall=  130.0 busy_max=  130.0 busy_min=  129.3 imbalance= 1.01 correct=YES
+[dynamic,1 ] wall=  128.8 busy_max=  128.8 busy_min=  128.8 imbalance= 1.00 correct=YES
+[dynamic,64] wall=  137.2 busy_max=  137.2 busy_min=  136.7 imbalance= 1.00 correct=YES
+[guided,1  ] wall=  136.9 busy_max=  136.9 busy_min=  136.9 imbalance= 1.00 correct=YES
+[guided,64 ] wall=  134.0 busy_max=  134.0 busy_min=  133.9 imbalance= 1.00 correct=YES
+--- OMP_NUM_THREADS=4
+workload=uneven n=20000 threads=4 serial=281.8 (all times in ms)
+[static    ] wall=  123.5 busy_max=  123.4 busy_min=   18.7 imbalance= 6.61 correct=YES
+[static,1  ] wall=   68.6 busy_max=   68.6 busy_min=   67.0 imbalance= 1.02 correct=YES
+[static,64 ] wall=   70.5 busy_max=   70.5 busy_min=   68.7 imbalance= 1.03 correct=YES
+[dynamic,1 ] wall=   66.5 busy_max=   66.5 busy_min=   66.4 imbalance= 1.00 correct=YES
+[dynamic,64] wall=   67.1 busy_max=   67.1 busy_min=   66.5 imbalance= 1.01 correct=YES
+[guided,1  ] wall=   68.2 busy_max=   68.2 busy_min=   68.2 imbalance= 1.00 correct=YES
+[guided,64 ] wall=   67.3 busy_max=   67.3 busy_min=   66.0 imbalance= 1.02 correct=YES
+--- OMP_NUM_THREADS=8
+workload=uneven n=20000 threads=8 serial=264.8 (all times in ms)
+[static    ] wall=   68.0 busy_max=   67.8 busy_min=    5.4 imbalance=12.61 correct=YES
+[static,1  ] wall=   50.4 busy_max=   50.3 busy_min=   39.3 imbalance= 1.28 correct=YES
+[static,64 ] wall=   50.8 busy_max=   50.7 busy_min=   38.2 imbalance= 1.33 correct=YES
+[dynamic,1 ] wall=   45.9 busy_max=   45.9 busy_min=   45.9 imbalance= 1.00 correct=YES
+[dynamic,64] wall=   44.8 busy_max=   44.8 busy_min=   42.4 imbalance= 1.06 correct=YES
+[guided,1  ] wall=   49.4 busy_max=   49.4 busy_min=   49.0 imbalance= 1.01 correct=YES
+[guided,64 ] wall=   45.1 busy_max=   45.0 busy_min=   43.6 imbalance= 1.03 correct=YES
+--- Optional: single policy from OMP_SCHEDULE=dynamic,16 (4 threads)
+workload=uneven n=20000 threads=4 serial=269.8 (all times in ms)
+[static    ] wall=  124.7 busy_max=  124.5 busy_min=   18.1 imbalance= 6.87 correct=YES
+
+============================================================
+===== Task 3: false_sharing.c -- false sharing and padding =====
+============================================================
+--- Three runs with 4 threads
+threads=4 iterations=50000000 per thread
+adjacent counters are 8 bytes apart; padded counters are 64 bytes apart
+[adjacent        ] time=  178.13 ms  slowdown vs padded= 5.52x
+[padded          ] time=   32.25 ms  slowdown vs padded= 1.00x
+[local-accumulate] time=   20.69 ms  slowdown vs padded= 0.64x
+counters correct=YES
+threads=4 iterations=50000000 per thread
+adjacent counters are 8 bytes apart; padded counters are 64 bytes apart
+[adjacent        ] time=  158.84 ms  slowdown vs padded= 5.55x
+[padded          ] time=   28.60 ms  slowdown vs padded= 1.00x
+[local-accumulate] time=   20.40 ms  slowdown vs padded= 0.71x
+counters correct=YES
+threads=4 iterations=50000000 per thread
+adjacent counters are 8 bytes apart; padded counters are 64 bytes apart
+[adjacent        ] time=  164.47 ms  slowdown vs padded= 5.47x
+[padded          ] time=   30.09 ms  slowdown vs padded= 1.00x
+[local-accumulate] time=   19.41 ms  slowdown vs padded= 0.65x
+counters correct=YES
+--- Effect of thread count: t = 1 2 4 8
+(OMP_NUM_THREADS=1)
+threads=1 iterations=50000000 per thread
+adjacent counters are 8 bytes apart; padded counters are 64 bytes apart
+[adjacent        ] time=  124.83 ms  slowdown vs padded= 6.31x
+[padded          ] time=   19.78 ms  slowdown vs padded= 1.00x
+[local-accumulate] time=   17.13 ms  slowdown vs padded= 0.87x
+counters correct=YES
+(OMP_NUM_THREADS=2)
+threads=2 iterations=50000000 per thread
+adjacent counters are 8 bytes apart; padded counters are 64 bytes apart
+[adjacent        ] time=  129.53 ms  slowdown vs padded= 6.25x
+[padded          ] time=   20.73 ms  slowdown vs padded= 1.00x
+[local-accumulate] time=   16.82 ms  slowdown vs padded= 0.81x
+counters correct=YES
+(OMP_NUM_THREADS=4)
+threads=4 iterations=50000000 per thread
+adjacent counters are 8 bytes apart; padded counters are 64 bytes apart
+[adjacent        ] time=  157.71 ms  slowdown vs padded= 4.63x
+[padded          ] time=   34.03 ms  slowdown vs padded= 1.00x
+[local-accumulate] time=   19.00 ms  slowdown vs padded= 0.56x
+counters correct=YES
+(OMP_NUM_THREADS=8)
+threads=8 iterations=50000000 per thread
+adjacent counters are 8 bytes apart; padded counters are 64 bytes apart
+[adjacent        ] time=  367.07 ms  slowdown vs padded= 2.16x
+[padded          ] time=  170.21 ms  slowdown vs padded= 1.00x
+[local-accumulate] time=   37.05 ms  slowdown vs padded= 0.22x
+counters correct=YES
+
+============================================================
+===== Task 4: schedule_bench.c -DUNIFORM -- uniform workload =====
+============================================================
+--- Uniform workload with 4 threads
+workload=uniform n=20000 threads=4 serial=259.2 (all times in ms)
+[static    ] wall=   72.8 busy_max=   72.8 busy_min=   71.3 imbalance= 1.02 correct=YES
+[static,1  ] wall=   76.4 busy_max=   76.4 busy_min=   75.3 imbalance= 1.02 correct=YES
+[static,64 ] wall=   69.2 busy_max=   69.2 busy_min=   66.9 imbalance= 1.03 correct=YES
+[dynamic,1 ] wall=   70.7 busy_max=   70.7 busy_min=   70.7 imbalance= 1.00 correct=YES
+[dynamic,64] wall=   66.8 busy_max=   66.8 busy_min=   66.3 imbalance= 1.01 correct=YES
+[guided,1  ] wall=   70.1 busy_max=   70.1 busy_min=   70.1 imbalance= 1.00 correct=YES
+[guided,64 ] wall=   70.0 busy_max=   70.0 busy_min=   69.4 imbalance= 1.01 correct=YES
+
+===== Done =====
